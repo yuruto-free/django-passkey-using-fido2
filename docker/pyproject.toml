@@ -36,6 +36,21 @@ factory-boy = "^3.3.3"
 mock = "^5.2.0"
 coverage = "^7.10.3"
 
+[tool.pytest_env]
+PYTHONPATH = "/opt/app"
+
+[tool.pytest.ini_options]
+addopts = "-vv --maxfail=3 --rootdir=/opt/app --cov=. --cov-report=xml --cov-report=html --cov-config=.coveragerc"
+DJANGO_SETTINGS_MODULE = "docs.settings"
+testpaths = ["passkey/tests"]
+python_files = ["test_*.py", "tests.py", "*_test.py"]
+markers = [
+  "model: mark tests as Django Model",
+  "form: mark tests as Django Form",
+  "view: mark tests as Django View",
+]
+cache_dir = "/opt/home/.cache"
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
