@@ -1,0 +1,25 @@
+services:
+  server:
+    build:
+      context: ./docker
+      args:
+        - UID
+        - GID
+        - USERNAME=user
+        - GROUPNAME=user
+        - ARCHITECTURE=arm64v8
+        - TIMEZONE=Asia/Tokyo
+    image: server.passkey
+    container_name: server.passkey
+    restart: always
+    volumes:
+      - ./:/opt/app
+      - ./docker/pyproject.toml:/opt/pyproject.toml
+    networks:
+      - localnet
+    ports:
+      - 8000:8000
+
+networks:
+  localnet:
+    name: localnet
