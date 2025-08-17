@@ -1,0 +1,41 @@
+[project]
+name = "django-passkey"
+version = "0.1.0"
+description = "Django passkey application using FIDO2 library"
+authors = [
+    {name = "yuruto-free"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.10"
+
+[project.urls]
+homepage = "https://github.com/yuruto-free/django-passkey-using-fido2/blob/master/README.md"
+repository = "https://github.com/yuruto-free/django-passkey-using-fido2"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.2"
+django-sslserver-v2 = "^1.0"
+ua-parser = "^1.0.1"
+user-agents = "^2.2.0"
+fido2 = "^2.0.0"
+sqlparse = "^0.5.3"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+pytest-django = "^4.11.1"
+pytest-env = "^1.1.5"
+pytest-factoryboy = "^2.8.1"
+pytest-mock = "^3.14.1"
+pytest-randomly = "^3.16.0"
+factory-boy = "^3.3.3"
+mock = "^5.2.0"
+coverage = "^7.10.3"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
