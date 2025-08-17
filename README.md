@@ -100,3 +100,16 @@ The detail is shown below.
 | `id`             | `None`  | Primary key (UUID) of `passkey.models.Passkey` instance |
 | `platform`       | `None`  | Platform name which is one of `Apple`, `Amazon`, `Microsoft`, `Google`, and `Unknown`. |
 | `cross_platform` | `None`  | `True/False`, If `True`, the user used a key from another platform, which means there is no key local to the device used to login. |
+
+## Test
+Run the following command using pytest.
+
+```bash
+# In the host environment
+./helper.sh start
+docker exec -it server.passkey bash
+
+# In the docker environment
+pytest
+coverage report --format=markdown > htmlcov/report.md
+```

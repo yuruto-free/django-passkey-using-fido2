@@ -40,11 +40,12 @@ coverage = "^7.10.3"
 PYTHONPATH = "/opt/app"
 
 [tool.pytest.ini_options]
-addopts = "-vv --maxfail=3 --rootdir=/opt/app --cov=. --cov-report=xml --cov-report=html --cov-config=.coveragerc"
-DJANGO_SETTINGS_MODULE = "docs.settings"
+addopts = "-vv --rootdir=/opt/app --cov=. --cov-report=xml --cov-report=html --cov-config=.coveragerc"
+DJANGO_SETTINGS_MODULE = "configure_passkey.settings"
 testpaths = ["passkey/tests"]
 python_files = ["test_*.py", "tests.py", "*_test.py"]
 markers = [
+  "backend: mark tests as Django Backend",
   "model: mark tests as Django Model",
   "form: mark tests as Django Form",
   "view: mark tests as Django View",

@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from base64 import urlsafe_b64encode
 from fido2.server import Fido2Server
 from fido2.utils import websafe_decode, websafe_encode
 from fido2.webauthn import (
@@ -151,7 +150,7 @@ class Passkey(models.Model):
     authenticator_attachment = getattr(settings, 'KEY_ATTACHMENT', None)
     username = user.get_username()
     user_entity = {
-      'id': urlsafe_b64encode(_pk_bytes(user.pk)),
+      'id': _pk_bytes(user.pk),
       'name': username,
       'displayName': str(user),
     }
@@ -190,7 +189,7 @@ class Passkey(models.Model):
           is_enabled=True,
         )
         status_code, message = 200, _('Complete the registeration.')
-    except Exception as err:
+    except Exception as ex:
       logger.error(str(ex))
       status_code, message = 500, _('Error on server, please try again later.')
 
@@ -224,7 +223,7 @@ class Passkey(models.Model):
       )
       server = instance.get_server(request)
       credentials = [AttestedCredentialData(websafe_decode(instance.token))]
-      state = request.session.pop('fido2_state'),
+      state = request.session.pop('fido2_state')
       # Authentication
       server.authenticate_complete(state, credentials=credentials, response=data)
       # Update current instance data
