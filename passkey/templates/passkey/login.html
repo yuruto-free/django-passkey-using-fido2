@@ -1,0 +1,95 @@
+{% extends 'passkey/passkey_base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block header %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+<div class="row justify-content-center">
+  <div class="col">
+    <form class="col" action="{% url 'passkey:login' %}" method="POST" id="login-form">
+      {% csrf_token %}
+
+      <div class="row row-cols-1 g-3">
+        {% if form.non_field_errors %}
+        <div class="col text-danger">
+          <p class="fs-5">{% trans "Errors" %}</p>
+          {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        {% for field in form %}
+        <div class="col">
+          <div class="row row-cols-1 g-2">
+            {% if field.label %}
+            <div class="col"><label class="form-label fw-bold"{% if field.id_for_label %} for="{{ field.id_for_label }}"{% endif %}>{{ field.label }}</label></div>
+            {% endif %}
+            <div class="col">{{ field }}</div>
+            {% if field.errors %}
+            <div class="col text-danger fs-5">{{ field.errors }}</div>
+            {% endif %}
+            {% if field.help_text %}
+            <div class="col helptext"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ field.help_text|safe }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="mt-2 row row-cols-1 row-cols-md-2 g-2">
+        <div class="col">
+          <button type="submit" class="btn btn-primary w-100">{% trans "Login" %}</button>
+        </div>
+        <div class="col">
+          <a href="/" class="btn btn-secondary w-100">{% trans "Cancel" %}</a>
+        </div>
+      </div>
+      {# Login by passkey #}
+      <div class="mt-2">
+        <button id="passkey-login" type="button" class="btn btn-dark w-100">
+          <i class="fa-solid fa-key"></i> &nbsp; {% trans "Login by passkeys" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="application/javascript" src="{% static 'passkey/js/passkey_api.js' %}"></script>
+<script>
+(function () {
+  document.addEventListener('DOMContentLoaded', () => {
+    const passkeyBtn = document.querySelector('#passkey-login');
+    const authURL = '{% url "passkey:begin_passkey_authentication" %}';
+    const callback = (done, result) => {
+      if (done) {
+        const element = document.querySelector('#passkey');
+        const form = document.querySelector('#login-form');
+        element.value = JSON.stringify(result);
+        form.submit();
+      }
+      else {
+        console.error(result);
+      }
+    };
+    // Initialize passkey library
+    PasskeyAPI.Init();
+    // Check conditional UI
+    PasskeyAPI.CheckConditionalUI((isAvailable, err) => {
+      if (isAvailable) {
+        PasskeyAPI.Authentication(authURL, callback);
+      }
+      else {
+        console.error(err);
+      }
+    });
+    // Add click event
+    passkeyBtn.addEventListener('click', () => {
+      PasskeyAPI.Authentication(authURL, callback);
+    });
+  });
+})();
+</script>
+{% endblock %}

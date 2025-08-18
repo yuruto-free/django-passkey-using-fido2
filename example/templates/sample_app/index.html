@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col">
+    <div class="row row-cols-1 g-2">
+      {# Login #}
+      <div class="col">
+        <div class="card">
+          <div class="card-header">{% trans "Login page" %}</div>
+          <div class="card-body">
+            <p class="card-title fs-3">
+              <a href="{% url 'passkey:login' %}">
+                {% trans "Login with email/password or passkey" %}
+              </a>
+            </p>
+            <p class="card-text">{% blocktrans trimmed %}
+                For the first time, you need to login with email/password.
+                And you can login by using the following email/password.
+            {% endblocktrans %}</p>
+            <p class="card-text">
+              <label class="fw-bold">{% trans "Email" %}</label>: <span>test-user@sample.local</span>
+            </p>
+            <p class="card-text">
+              <label class="fw-bold">{% trans "Password" %}</label>: <span>testUser002@password</span>
+            </p>
+          </div>
+        </div>
+      </div>
+      {# Logout #}
+      <div class="col">
+        <div class="card">
+          <div class="card-header">{% trans "Logout page" %}</div>
+          <div class="card-body">
+            <p class="card-title fs-3">{% trans "Conduct logout process" %}</p>
+            <p class="card-text">
+              <form action="{% url 'passkey:logout' %}" method="POST" id="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary w-100">{% trans "Logout" %}</button>
+              </form>
+            </p>
+          </div>
+        </div>
+      </div>
+      {# Passkey list #}
+      <div class="col">
+        <div class="card">
+          <div class="card-header">{% trans "Passkey list" %}</div>
+          <div class="card-body">
+            <p class="card-title fs-3">
+              <a href="{% url 'passkey:passkey_list' %}">
+                {% trans "Check registered passkeys and register a new passkey" %}
+              </a>
+            </p>
+            <p class="card-text">{% trans "In this page, you can only your passkeys." %}</p>
+          </div>
+        </div>
+      </div>
+      {# Validation by using PasskeyAPI #}
+      <div class="col">
+        <div class="card bg-secondary">
+          <div class="card-header">{% trans "[Optional] Validation by using PasskeyAPI (after five seconds the page was loaded)" %}</div>
+          <div class="card-body">
+            <p class="card-title fs-3">
+              <a href="#" id="passkey-link" role="button" class="link-underline link-underline-opacity-0 text-dark disabled" tabindex="-1" aria-disabled="true">
+                {% trans "Check registered passkeys and register a new passkey" %}
+              </a>
+            </p>
+            <p class="card-text">{% blocktrans trimmed %}
+              In this field, the system automatically checks whether the browser you use supports passkeys or not.
+              If you can use passkeys on your browser, the link of this element is enable via PasskeyAPI of javascript.
+            {% endblocktrans %}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/javascript" src="{% static 'passkey/js/passkey_api.js' %}"></script>
+<script>
+(function () {
+  const init = () => {
+    // Initialize passkey library
+    PasskeyAPI.Init();
+    PasskeyAPI.CheckPasskeys((isAvailable, err) => {
+      if (isAvailable) {
+        const element = document.querySelector('#passkey-link');
+        const card = document.querySelector('div.card.bg-secondary');
+        element.href = '{% url "passkey:passkey_list" %}';
+        element.removeAttribute('tabindex');
+        element.setAttribute('aria-disabled', 'false');
+        element.classList.remove('disabled', 'link-underline', 'link-underline-opacity-0', 'text-dark');
+        card.classList.remove('bg-secondary');
+      }
+      else {
+        console.error(err);
+      }
+    });
+  };
+  // Add DOM event
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      init();
+    }, 5 * 1000);
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,234 @@
+{% extends 'passkey/passkey_base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+{{ block.super }}
+<div class="row justify-content-center">
+  <div class="col">
+    <div class="row row-cols-1 g-2">
+      <div class="col">
+        <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#register-passkey-modal">
+          {% trans "Register a new passkey" %}
+        </button>
+      </div>
+      {% if passkeys %}
+      <div class="col">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr class="align-middle">
+                <th scope="col">{% trans "Name" %}</th>
+                <th scope="col">{% trans "Platform" %}</th>
+                <th scope="col">{% trans "Date joined" %}</th>
+                <th scope="col">{% trans "Last used" %}</th>
+                <th colspan="2">{% trans "Operation" %}</th>
+              </tr>
+            </thead>
+            <tbody class="table-group-divider">
+            {% for instance in passkeys %}
+              <tr class="align-middle">
+                {% with table_css=instance.is_enabled|yesno:',table-secondary' %}
+                <td scope="row" class="{{ table_css }}">{{ instance.name }}</td>
+                <td class="{{ table_css }}">{{ instance.platform }}</td>
+                <td class="{{ table_css }}">{{ instance.date_joined|date:"Y/m/d H:i:s" }}</td>
+                <td class="{{ table_css }}">{% if instance.last_used %}{{ instance.last_used|date:"Y/m/d H:i:s" }}{% else %}-{% endif %}</td>
+                {% endwith %}
+                <td>
+                  <form action="{% url 'passkey:update_passkey_status' pk=instance.pk %}" class="js-update-passkey-status-form" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-{{ instance.is_enabled|yesno:'danger,primary' }} w-100 text-nowrap">
+                      {% if instance.is_enabled %}{% trans "Disabled" %}{% else %}{% trans "Enabled" %}{% endif %}
+                    </button>
+                  </form>
+                </td>
+                <td>
+                  {% if instance.is_enabled %}
+                  <button type="button" class="btn btn-outline-danger w-100 text-nowrap" data-name="{{ instance.name }}" data-url="#" disabled>
+                    {% trans "Delete" %}
+                  </button>
+                  {% else %}
+                  <button type="button" class="btn btn-outline-danger w-100 text-nowrap js-delete-passkey" data-name="{{ instance.name }}" data-url="{% url 'passkey:delete_passkey' pk=instance.pk %}">
+                    {% trans "Delete" %}
+                  </button>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col">
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a href="?page=1">&laquo;</a>
+            </li>
+            <li class="page-item">
+              <a href="?page={{ page_obj.previous_page_number }}">&lt;</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item">
+              {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+              <a href="?page={{ page_obj.next_page_number }}">&gt;</a>
+            </li>
+            <li class="page-item">
+              <a href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+      {% else %}
+      <div class="col">
+        <p>{% trans "There is no passkey." %}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# Register a new passkey modal #}
+<div class="modal" id="register-passkey-modal" tabindex="-1" aria-labelledby="register-passkey-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <p class="modal-title fs-5" id="register-passkey-label">{% trans "Register a new passkey" %}</p>
+         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% csrf_token %}
+        <p>{% trans "Enter a new passkey name" %}</p>
+        <div>
+          <input type="text" id="key-name" class="form-control" />
+        </div>
+        <div id="registration-result" class="mt-2"></div>
+      </div>
+      <div class="modal-footer">
+        <div class="row g-2 w-100">
+          <div class="col-12 col-md-6">
+            <button type="button" id="register-passkey" class="btn btn-primary w-100">
+               {% trans "Register" %}
+            </button>
+          </div>
+          <div class="col-12 col-md-6">
+            <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">
+              {% trans "Close" %}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Delete the passkey modal #}
+<div class="modal" id="delete-passkey-modal" tabindex="-1" aria-labelledby="delete-passkey-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <p class="modal-title fs-5" id="delete-passkey-label">{% trans "Confirmation of deletion" %}</p>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-danger"><strong>{% trans "May I really delete this record?" %}</strong></p>
+        <p>{% trans "Target" %}: <span id="target-name" class="text-break"></span></p>
+      </div>
+      <div class="modal-footer">
+        <form method="POST" action="" id="delete-passkey-form" class="w-100">
+          {% csrf_token %}
+          <div class="row g-2">
+            <div class="col-12 col-md-6">
+              <button type="submit" class="btn btn-danger w-100">
+                {% trans "OK" %}
+              </button>
+            </div>
+            <div class="col-12 col-md-6">
+              <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">
+                {% trans "Close" %}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/javascript" src="{% static 'passkey/js/passkey_api.js' %}"></script>
+<script>
+(function () {
+  // Define modal event
+  const registerDeleteModalEvent = () => {
+    const deleteBtns = document.querySelectorAll('.js-delete-passkey');
+    const deleteForm = document.querySelector('#delete-passkey-form');
+    const targetField = document.querySelector('#target-name');
+
+    for (const btn of deleteBtns) {
+      btn.addEventListener('click', (event) => {
+        deleteForm.action = btn.dataset.url;
+        targetField.textContent = btn.dataset.name;
+        const modal = new bootstrap.Modal('#delete-passkey-modal');
+        modal.show();
+      });
+    }
+  };
+  // Define passkey registration event
+  const registerPasskeyEvent = () => {
+    const registerPasskeyBtn = document.querySelector('#register-passkey');
+    const inputKey = document.querySelector('#key-name');
+    inputKey.addEventListener('keyup', (event) => {
+      if (event.key === 'Enter') {
+        registerPasskeyBtn.click();
+      }
+    }, false);
+    registerPasskeyBtn.addEventListener('click', () => {
+      const registerURL = '{% url "passkey:register_passkey" %}';
+      const keyName = inputKey.value;
+      const csrftoken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
+      const callback = (done, message) => {
+        const createNode = (text, msgType) => {
+          const node = document.createElement('div');
+          node.textContent = text;
+          node.classList.add('alert', msgType);
+
+          return node;
+        };
+        const result = document.querySelector('#registration-result');
+        while (result.firstChild) {
+          result.removeChild(result.firstChild);
+        }
+
+        if (done) {
+          const text = '{% trans "Registration successfully. After three seconds, refresh the page." %}';
+          const node = createNode(text, 'alert-success');
+          result.appendChild(node);
+          setTimeout(() => {
+            window.location.href = '{% url "passkey:passkey_list" %}';
+          }, 3 * 1000);
+        }
+        else {
+          const node = createNode(message, 'alert-danger');
+          result.appendChild(node);
+        }
+      };
+      PasskeyAPI.RegisterPasskey(registerURL, keyName, csrftoken, callback);
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    registerDeleteModalEvent();
+    registerPasskeyEvent();
+    // Initialize passkey library
+    PasskeyAPI.Init();
+  });
+})();
+</script>
+{% endblock %}
