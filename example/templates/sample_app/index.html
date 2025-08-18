@@ -29,6 +29,21 @@
           </div>
         </div>
       </div>
+      {# Logout #}
+      <div class="col">
+        <div class="card">
+          <div class="card-header">{% trans "Logout page" %}</div>
+          <div class="card-body">
+            <p class="card-title fs-3">{% trans "Conduct logout process" %}</p>
+            <p class="card-text">
+              <form action="{% url 'passkey:logout' %}" method="POST" id="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary w-100">{% trans "Logout" %}</button>
+              </form>
+            </p>
+          </div>
+        </div>
+      </div>
       {# Passkey list #}
       <div class="col">
         <div class="card">
@@ -70,14 +85,19 @@
   const init = () => {
     // Initialize passkey library
     PasskeyAPI.Init();
-    PasskeyAPI.CheckPasskeys(() => {
-      const element = document.querySelector('#passkey-link');
-      const card = document.querySelector('div.card.bg-secondary');
-      element.href = '{% url "passkey:passkey_list" %}';
-      element.removeAttribute('tabindex');
-      element.setAttribute('aria-disabled', 'false');
-      element.classList.remove('disabled', 'link-underline', 'link-underline-opacity-0', 'text-dark');
-      card.classList.remove('bg-secondary');
+    PasskeyAPI.CheckPasskeys((isAvailable, err) => {
+      if (isAvailable) {
+        const element = document.querySelector('#passkey-link');
+        const card = document.querySelector('div.card.bg-secondary');
+        element.href = '{% url "passkey:passkey_list" %}';
+        element.removeAttribute('tabindex');
+        element.setAttribute('aria-disabled', 'false');
+        element.classList.remove('disabled', 'link-underline', 'link-underline-opacity-0', 'text-dark');
+        card.classList.remove('bg-secondary');
+      }
+      else {
+        console.error(err);
+      }
     });
   };
   // Add DOM event

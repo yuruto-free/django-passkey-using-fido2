@@ -22,7 +22,6 @@
         </div>
         {% endif %}
         {% for field in form %}
-        {% if not field.is_hidden %}
         <div class="col">
           <div class="row row-cols-1 g-2">
             {% if field.label %}
@@ -37,12 +36,6 @@
             {% endif %}
           </div>
         </div>
-        {% endif %}
-        {% if forloop.last and hidden_fields %}
-        <div class="col">{% for field in hidden_fields %}
-          {{ field }}{% endfor %}
-        </div>
-        {% endif %}
         {% endfor %}
       </div>
 

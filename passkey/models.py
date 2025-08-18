@@ -200,7 +200,7 @@ class Passkey(models.Model):
     if request.user.is_authenticated:
       credentials = cls.get_credentials(request.user)
     else:
-      credentials = None
+      credentials = []
     server = cls.get_server(request)
     data, state = server.authenticate_begin(credentials)
     options = dict(data)

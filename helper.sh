@@ -34,6 +34,15 @@ Enabled commands:
 _EOF_
 }
 
+function clean_up() {
+  # Delete disabled containers
+  docker ps -a | grep Exited | awk '{print $1;}' | xargs -I{} docker rm -f {}
+  # Delete disabled images
+  docker images | grep none | awk '{print $3;}' | xargs -I{} docker rmi {}
+  # Delete temporary volumes
+  docker volume ls | grep -oP "\s+[0-9a-f]+$" | awk '{print $1}' | xargs -I{} docker volume rm {}
+}
+
 # ================
 # = main routine =
 # ================
@@ -52,6 +61,7 @@ while [ -n "$1" ]; do
 
     build )
       docker compose build --build-arg UID="$(id -u)" --build-arg GID="$(id -g)"
+      clean_up
 
       shift
       ;;

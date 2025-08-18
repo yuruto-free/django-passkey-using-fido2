@@ -166,11 +166,13 @@ const PasskeyAPI = {};
   };
 
   PasskeyAPI.CheckPasskeys = (callback) => {
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then((isAvailable) => {
-      callback(isAvailable, 'Cannot use passkey on your device.');
-    }).catch((err) => {
-      callback(false, err);
-    });
+    if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then((isAvailable) => {
+        callback(isAvailable, 'Cannot use passkey on your device.');
+      }).catch((err) => {
+        callback(false, err);
+      });
+    }
   };
 
   PasskeyAPI.RegisterPasskey = (registerURL, keyName, csrftoken, callback) => {
@@ -226,7 +228,7 @@ const PasskeyAPI = {};
 
       return navigator.credentials.get(options);
     }).then((assertion) => {
-      const jsonData = publickeyCredentialToJson(assertion);
+      const jsonData = publicKeyCredentialToJSON(assertion);
       callback(true, jsonData);
     }).catch((err) => {
       callback(false, err);
