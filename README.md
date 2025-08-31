@@ -101,6 +101,9 @@ The detail is shown below.
 | `platform`       | `None`  | Platform name which is one of `Apple`, `Amazon`, `Microsoft`, `Google`, and `Unknown`. |
 | `cross_platform` | `None`  | `True/False`, If `True`, the user used a key from another platform, which means there is no key local to the device used to login. |
 
+## How to run example application
+See [README.md](./example/README.md) for details.
+
 ## Test
 Run the following command using pytest.
 
