@@ -26,9 +26,6 @@ Enabled commands:
   logs
     Show logs of each container
 
-  migrate
-    Execute database migration
-
   help | -h
     Show this message
 _EOF_
@@ -86,14 +83,6 @@ while [ -n "$1" ]; do
 
     logs )
       docker compose logs -t | sort -t "|" -k 1,+2d
-
-      shift
-      ;;
-
-    migrate )
-      apps=$(find django/app -type f | grep -oP "(?<=/)([a-zA-Z]+)(?=/apps.py$)" | tr '\n' ' ')
-      commands="python manage.py makemigrations ${apps}; python manage.py migrate"
-      docker compose run --rm server bash -c "${commands}"
 
       shift
       ;;
